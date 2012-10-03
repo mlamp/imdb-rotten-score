@@ -1,6 +1,7 @@
-var $header = $('#tn15title h1');
-
+var imdb_version = "2012-01-01";
 var port = chrome.extension.connect({name: "content-background"});
+
+
 port.onMessage.addListener(function(msg) {
 	if (msg.response == 'movies') {
 		var rottentomato_response = msg.response_data;
@@ -48,46 +49,109 @@ port.onMessage.addListener(function(msg) {
 			else {
 				is_rotten = false;
 			}
-			var added_html = '' + 
-			'<div class="general">' +
-				'<div class="info stars">' +
-					'<h5>Rotten Rating:</h5>' +
-					'<div id="rotten_box_outer"><div id="rotten_box" class="' + (is_rotten ? 'rotten' : '') + '"><div class="background"><div class="foreground" style="width: ' + movie_avg_score + '%;"></div></div></div></div>' +
-					'<div class="starbar-meta"><b>' + (rottentomato_movie.ratings.critics_score >= 0 ? rottentomato_movie.ratings.critics_score : 'NA') + '/' + ( rottentomato_movie.ratings.audience_score >= 0 ? rottentomato_movie.ratings.audience_score : 'NA') + '</b>&nbsp;&nbsp;<a href="' + rottentomato_movie.links.alternate + '" class="tn15more" target="_blank">To rotten</a>&nbsp;»</div>' +
-				'</div>' +
-			'</div>';
-			$('#tn15rating').append(added_html);
+			
+			var movie_info = {
+				is_rotten: is_rotten,
+				avg_score: movie_avg_score,
+				critics_score: rottentomato_movie.ratings.critics_score,
+				audience_score: rottentomato_movie.ratings.audience_score,
+				link: rottentomato_movie.links.alternate
+			};
+			
+			console.log('HERE I AMZ!');
+			generateHtml(movie_info);
 		}
 	}
 });
 
+function generateHtml(movie_info) {
+	
+	
+	console.log(imdb_version, movie_info);
+	switch (imdb_version) {
+		case '2012-01-01':
+			var added_html = '' + 
+			'<div class="general">' +
+				'<div class="info stars">' +
+					'<h5>Rotten Rating:</h5>' +
+					'<div id="rotten_box_outer"><div id="rotten_box" class="' + (movie_info.is_rotten ? 'rotten' : '') + '"><div class="background"><div class="foreground" style="width: ' + movie_info.avg_score + '%;"></div></div></div></div>' +
+					'<div class="starbar-meta"><b>' + (movie_info.critics_score >= 0 ? movie_info.critics_score : 'NA') + '/' + (movie_info.audience_score >= 0 ? movie_info.audience_score : 'NA') + '</b>&nbsp;&nbsp;<a href="' + movie_info.link + '" class="tn15more" target="_blank">To rotten</a>&nbsp;»</div>' +
+				'</div>' +
+			'</div>';
+			$('#tn15rating').append(added_html);
+			break;
+		case '2012-10-03':
+			var added_html = '<div class="star-box-rating-widget">' +
+				'<span class="star-box-rating-label">Rotten:</span>' +
+				'<div id="rotten_box_outer_2012-10-03" title="Critics rated this ' + ( movie_info.critics_score >= 0 ? movie_info.critics_score : 'NA') + '%, users rated this ' + (movie_info.audience_score >= 0 ? movie_info.audience_score : 'NA') + '%">' +
+				'<div id="rotten_box_2012-10-03" class="' + (movie_info.is_rotten ? 'rotten' : '') + '"><div class="background"><div class="foreground" style="width: ' + movie_info.avg_score + '%;"></div></div></div>' +
+				'<span class="rating-rating" style="float: left; width: 85px; margin-left: 5px; text-align: left;"><span class="value">' + ( movie_info.critics_score >= 0 ? movie_info.critics_score : 'NA') + '%</span><span class="grey">/</span><span class="grey">' + (movie_info.audience_score >= 0 ? movie_info.audience_score : 'NA') + '%</span></span>&nbsp;' +
+				'</div>' + 
+			'</div>';
+			$('#overview-top DIV.star-box-details').before(added_html);
+			break;
+	};
+	
+	
+	
+}
 
-var header_text = $header.clone().children().remove().end().text();
-var movie_name = header_text.replace(/^\s+|\s+$/g, '');
 
-var movie_year;
 
-$header.find('span').each(function(index, tag_span) {
-	var yearstring = $(tag_span).find('a').text();
-	var yearstring_cleaned = yearstring.replace(/^\s+|\s+$/g, '') ;
-	var yearmatch = yearstring_cleaned.match(/((1|2)[0-9]{3})/);
-	if (yearmatch) {
-		movie_year = yearmatch[0];
+function detectVersion() {
+	if ($('#title-overview-widget-layout').length) {
+		imdb_version = "2012-10-03";
 	}
-});
-
-var full_movie_name = movie_name;
-
-if (movie_year) {
-	full_movie_name = full_movie_name + " " + movie_year;
 }
 
-var query_args = {
-		"q": full_movie_name,
-		"page_limi": 1,
-		"page": 1
-};
+function parseTitle() {
+	var $header;
+	switch (imdb_version) {
+		case '2012-01-01':
+			$header = $('#tn15title h1');
+			break;
+		case '2012-10-03':
+		default:
+			$header = $('div#maindetails_center_top h1.header[itemprop="name"]');
+	};
+	var header_text = $header.clone().children().remove().end().text();
+	var movie_name = header_text.replace(/^\s+|\s+$/g, '');
+	var movie_year = null;
 
-if (full_movie_name) {
-	port.postMessage({action: 'movies', query_args: query_args});
+	$header.find('span').each(function(index, tag_span) {
+		var yearstring = $(tag_span).find('a').text();
+		var yearstring_cleaned = yearstring.replace(/^\s+|\s+$/g, '') ;
+		var yearmatch = yearstring_cleaned.match(/((1|2)[0-9]{3})/);
+		if (yearmatch) {
+			movie_year = yearmatch[0];
+		}
+	});
+
+	var full_movie_name = movie_name;
+
+	if (movie_year) {
+		full_movie_name = full_movie_name + " " + movie_year;
+	}
+	var movie = {
+		name: movie_name,
+		year: movie_year,
+		full_name: full_movie_name
+	};
+	return movie;
 }
+
+function runExtension() {
+	detectVersion();
+	var movie = parseTitle();
+	var query_args = {
+			"q": movie.full_name,
+			"page_limi": 1,
+			"page": 1
+	};
+	if (movie.full_name) {
+		port.postMessage({action: 'movies', query_args: query_args});
+	}
+}
+
+
+runExtension();

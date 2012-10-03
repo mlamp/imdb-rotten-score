@@ -2,8 +2,8 @@
 
   "name": "IMDB rotten scores",
   "manifest_version": 2,
-  "version": "0.1",
-  "description": "Add rotten tomatoes score to IMDB",
+  "version": "0.2",
+  "description": "Add rotten tomatoes score to IMDB.com",
   "icons": { "16": "icons/icon16.png",
              "48": "icons/icon48.png",
             "128": "icons/icon128.png" },
@@ -13,8 +13,9 @@
 	"tabs",
 	"contextMenus",
 	"notifications",
-	"http://*/*",
-	"https://*/*"
+	"http://www.imdb.com/*",
+	"https://www.imdb.com/*",
+	"http://api.rottentomatoes.com/*"
   ],
   "background": {
   	"scripts": ["lib/jquery.min.js", "src/background.js"]
@@ -30,5 +31,4 @@
   	"icons/rt_lg.png",
   	"icons/rt_lg_gray.png"
   ]
-  // "update_url": "http://myhost.com/mytestextension/updates.xml"
 }

@@ -1,12 +1,17 @@
 <html>
 <head><title>IMDB rotten score option page</title></head>
 <script src="../lib/jquery.min.js"></script>
+<script src="const.js"></script>
 <script src="options.js"></script>
 <body>
 <div id="status"></div>
-Rotten Tomatoes API key: <input type="text" name="rotten_api_key" id="rotten_api_key" />
-
-<br>
+Rotten Tomatoes API key: <input type="text" name="rotten_api_key" id="rotten_api_key" /><br />
+Meter will show who's score: <select id="meter_shows_whos_score" name="meter_shows_whos_score">
+	<option value="1">Critics</option>
+	<option value="2">Random people's</option>
+	<option value="3">Average of critics/users</option>
+</select>
+<br><br />
 <button id="btn_save">Save</button>
 </body>
 </html>

@@ -1,4 +1,5 @@
 var imdb_version = "2012-01-01";
+var settings = {};
 var port = chrome.extension.connect({name: "content-background"});
 
 
@@ -42,39 +43,56 @@ port.onMessage.addListener(function(msg) {
 				movie_avg_score = 0;
 			}
 			
-			var is_rotten = true;
-			if (movie_avg_score < 50) {
-				is_rotten = true;
-			}
-			else {
-				is_rotten = false;
-			}
+
 			
 			var movie_info = {
-				is_rotten: is_rotten,
 				avg_score: movie_avg_score,
 				critics_score: rottentomato_movie.ratings.critics_score,
 				audience_score: rottentomato_movie.ratings.audience_score,
 				link: rottentomato_movie.links.alternate
 			};
 			
-			console.log('HERE I AMZ!');
 			generateHtml(movie_info);
 		}
+	}
+	else if (msg.response == 'load_settings') {
+		settings = msg.response_data;
+		runExtension();
 	}
 });
 
 function generateHtml(movie_info) {
+	if (!settings.meter_shows_whos_score) {
+		settings.meter_shows_whos_score = OPTIONS_METER_AVERAGE; 
+	}
+	var meter_score = movie_info.avg_score;
+	switch (settings.meter_shows_whos_score) {
+		case OPTIONS_METER_CRITIC:
+			meter_score = movie_info.critics_score;
+			break;
+		case OPTIONS_METER_SHEEPS:
+			meter_score = movie_info.audience_score;
+			break;
+		case OPTIONS_METER_AVERAGE:
+			break;
+	};
+	
+	movie_info.is_rotten = true;
+	if (meter_score < 50) {
+		movie_info.is_rotten = true;
+	}
+	else {
+		movie_info.is_rotten = false;
+	}
 	
 	
-	console.log(imdb_version, movie_info);
 	switch (imdb_version) {
 		case '2012-01-01':
 			var added_html = '' + 
 			'<div class="general">' +
 				'<div class="info stars">' +
 					'<h5>Rotten Rating:</h5>' +
-					'<div id="rotten_box_outer"><div id="rotten_box" class="' + (movie_info.is_rotten ? 'rotten' : '') + '"><div class="background"><div class="foreground" style="width: ' + movie_info.avg_score + '%;"></div></div></div></div>' +
+					'<div id="rotten_box_outer"><div id="rotten_box" class="' + (movie_info.is_rotten ? 'rotten' : '') + '"><div class="background"><div class="foreground" style="width: ' + meter_score + '%;"></div></div></div></div>' +
 					'<div class="starbar-meta"><b>' + (movie_info.critics_score >= 0 ? movie_info.critics_score : 'NA') + '/' + (movie_info.audience_score >= 0 ? movie_info.audience_score : 'NA') + '</b>&nbsp;&nbsp;<a href="' + movie_info.link + '" class="tn15more" target="_blank">To rotten</a>&nbsp;»</div>' +
 				'</div>' +
 			'</div>';
@@ -84,7 +102,7 @@ function generateHtml(movie_info) {
 			var added_html = '<div class="star-box-rating-widget">' +
 				'<span class="star-box-rating-label">Rotten:</span>' +
 				'<div id="rotten_box_outer_2012-10-03" title="Critics rated this ' + ( movie_info.critics_score >= 0 ? movie_info.critics_score : 'NA') + '%, users rated this ' + (movie_info.audience_score >= 0 ? movie_info.audience_score : 'NA') + '%">' +
-				'<div id="rotten_box_2012-10-03" class="' + (movie_info.is_rotten ? 'rotten' : '') + '"><div class="background"><div class="foreground" style="width: ' + movie_info.avg_score + '%;"></div></div></div>' +
+				'<div id="rotten_box_2012-10-03" class="' + (movie_info.is_rotten ? 'rotten' : '') + '"><div class="background"><div class="foreground" style="width: ' + meter_score + '%;"></div></div></div>' +
 				'<span class="rating-rating" style="float: left; width: 85px; margin-left: 5px; text-align: left;"><span class="value">' + ( movie_info.critics_score >= 0 ? movie_info.critics_score : 'NA') + '%</span><span class="grey">/</span><span class="grey">' + (movie_info.audience_score >= 0 ? movie_info.audience_score : 'NA') + '%</span></span>&nbsp;' +
 				'</div>' + 
 			'</div>';
@@ -153,5 +171,4 @@ function runExtension() {
 	}
 }
 
-
-runExtension();
+port.postMessage({action: 'load_settings'});

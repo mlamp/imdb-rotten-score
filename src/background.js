@@ -10,6 +10,13 @@ chrome.extension.onConnect.addListener(function(port) {
 					port.postMessage({response: "movies", response_data: jsonReturn});
 				}, "json");
 			}
+			else if (msg.action == 'load_settings') {
+				port.postMessage({response: 'load_settings', response_data: {
+						meter_shows_whos_score: parseInt(localStorage.getItem("settings_meter_shows_whos_score")),
+						rotten_api_key: localStorage.getItem("settings_rotten_api_key")
+					}
+				});
+			}
 		});
 	}
 });

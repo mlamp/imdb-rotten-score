@@ -77,15 +77,9 @@ function generateHtml(movieInfo) {
 			break;
 		case OPTIONS_METER_AVERAGE:
 			break;
-	};
+	}
 	
-	movieInfo.isRotten = true;
-	if (meter_score < 50) {
-		movieInfo.isRotten = true;
-	}
-	else {
-		movieInfo.isRotten = false;
-	}
+	movieInfo.isRotten = meter_score < 50;
 
 	var addedHtml;
 	switch (imdbVersion) {
@@ -108,9 +102,9 @@ function generateHtml(movieInfo) {
 				'<span class="rating-rating" style="float: left; width: 85px; margin-left: 5px; text-align: left;"><span class="value">' + ( movieInfo.critics_score >= 0 ? movieInfo.critics_score : 'NA') + '%</span><span class="grey">/</span><span class="grey">' + (movieInfo.audience_score >= 0 ? movieInfo.audience_score : 'NA') + '%</span></span>&nbsp;' +
 				'</div>' + 
 			'</div>';
-			jQuery('#overview-top DIV.star-box-details').before(addedHtml);
+			jQuery('#overview-top').find('DIV.star-box-details').before(addedHtml);
 			break;
-	};
+	}
 	
 	
 	
@@ -119,7 +113,7 @@ function generateHtml(movieInfo) {
 
 
 function detectVersion() {
-	if (jQuery('#title-overview-widget-layout').length) {
+	if (jQuery('#title-overview-widget').length) {
 		imdbVersion = "2012-10-03";
 	}
 }
@@ -128,12 +122,12 @@ function parseTitle() {
 	var $header;
 	switch (imdbVersion) {
 		case '2012-01-01':
-			$header = jQuery('#tn15title h1');
+			$header = jQuery('#tn15title').find('h1');
 			break;
-		case '2012-10-03':
+		//case '2012-10-03':
 		default:
-			$header = jQuery('div#maindetails_center_top h1.header[itemprop="name"]');
-	};
+			$header = jQuery('h1.header span[itemprop="name"]');
+	}
 	var headerText = $header.clone().children().remove().end().text();
 	var movieName = headerText.replace(/^\s+|\s+$/g, '');
 	var movieYear = null;
@@ -151,12 +145,11 @@ function parseTitle() {
 	if (movieYear) {
 		fullMovieName = fullMovieName + " " + movieYear;
 	}
-	var movie = {
+	return {
 		name: movieName,
 		year: movieYear,
 		fullName: fullMovieName
 	};
-	return movie;
 }
 
 function runExtension() {

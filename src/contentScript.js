@@ -67,7 +67,7 @@ function generateHtml(movieInfo) {
 	if (!settings.meter_shows_whos_score) {
 		settings.meter_shows_whos_score = OPTIONS_METER_AVERAGE; 
 	}
-	var meter_score = movieInfo.avg_score;
+	var meter_score = movieInfo.avgScore;
 	switch (settings.meter_shows_whos_score) {
 		case OPTIONS_METER_CRITIC:
 			meter_score = movieInfo.critics_score;

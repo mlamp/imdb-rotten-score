@@ -11,7 +11,7 @@ port.onMessage.addListener(function(msg) {
 			var rottentomatoMovie = null;
 			var isExactMatch = false;
 			$(rottentomatoResponse.movies).each(function(index, movieItem) {
-				if (typeof movieItem.alternate_ids != 'undefined' && typeof movieItem.alternate_ids.imdb != 'undefined') {
+				if (typeof movieItem.alternate_ids !== 'undefined' && typeof movieItem.alternate_ids.imdb !== 'undefined') {
 					if (window.location.pathname.match(new RegExp(movieItem.alternate_ids.imdb))) {
 						rottentomatoMovie = movieItem;
 						isExactMatch = true;
@@ -22,7 +22,7 @@ port.onMessage.addListener(function(msg) {
 				rottentomatoMovie = rottentomatoResponse.movies[0];
 				isExactMatch = false;
 			}
-			
+
 			var movieTotalScore = 0;
 			var partiesRated = 0;
 			var isRated = false;
@@ -157,9 +157,7 @@ function runExtension() {
 	detectVersion();
 	var movie = parseTitle();
 	var queryArgs = {
-			"q": movie.fullName,
-			"page_limit": 1,
-			"page": 1
+			"q": movie.fullName
 	};
 	if (movie.fullName) {
 		port.postMessage({action: 'movies', queryArgs: queryArgs});

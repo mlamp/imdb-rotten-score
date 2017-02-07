@@ -1,59 +1,41 @@
-var imdbVersion = "2012-01-01";
-var settings = {};
-var port = chrome.extension.connect({name: "content-background"});
+let imdbVersion = "2012-01-01";
+let settings = {};
+const port = chrome.extension.connect({name: "content-background"});
 
 
 port.onMessage.addListener(function(msg) {
-	if (msg.response == 'movies') {
-		var rottentomatoResponse = msg.responseData;
-		if (rottentomatoResponse.total > 0) {
-			/* Let's try to figure out if we have better result when we're looping and trying to figure out right movie id */
-			var rottentomatoMovie = null;
-			var isExactMatch = false;
-			$(rottentomatoResponse.movies).each(function(index, movieItem) {
-				if (typeof movieItem.alternate_ids !== 'undefined' && typeof movieItem.alternate_ids.imdb !== 'undefined') {
-					if (window.location.pathname.match(new RegExp(movieItem.alternate_ids.imdb))) {
-						rottentomatoMovie = movieItem;
-						isExactMatch = true;
-					}
-				}
-			});
-			if (!rottentomatoMovie) {
-				rottentomatoMovie = rottentomatoResponse.movies[0];
-				isExactMatch = false;
+	if (msg.response == 'movieResponse') {
+		if (msg.responseData) {
+			let movieTotalScore = 0;
+			let partiesRated = 0;
+			let isRated = false;
+			if (msg.responseData.rottenScores.criticsScore > 0) {
+				movieTotalScore += msg.responseData.rottenScores.criticsScore;
+				++partiesRated;
+				isRated = true;
 			}
 
-			var movieTotalScore = 0;
-			var partiesRated = 0;
-			var isRated = false;
-			if (rottentomatoMovie.ratings.critics_score > 0) {
-				movieTotalScore += rottentomatoMovie.ratings.critics_score;
+			if (msg.responseData.rottenScores.audienceScore > 0) {
+				movieTotalScore += msg.responseData.rottenScores.audienceScore;
 				++partiesRated;
 				isRated = true;
 			}
-			
-			if (rottentomatoMovie.ratings.audience_score > 0) {
-				movieTotalScore += rottentomatoMovie.ratings.audience_score;
-				++partiesRated;
-				isRated = true;
-			}
-			
-			var movieAvgScore;
+
+			let movieAvgScore;
 			if (isRated) {
 				movieAvgScore = movieTotalScore / partiesRated;
 			}
 			else {
 				movieAvgScore = 0;
 			}
-			
-			var movieInfo = {
+
+			const movieInfo = {
 				avgScore: movieAvgScore,
-				critics_score: rottentomatoMovie.ratings.critics_score,
-				audience_score: rottentomatoMovie.ratings.audience_score,
-				link: rottentomatoMovie.links.alternate,
-				isExactMatch: isExactMatch
+				criticsScore: msg.responseData.rottenScores.criticsScore,
+				audienceScore: msg.responseData.rottenScores.audienceScore,
+				link: msg.responseData.rottenLink,
 			};
-			
+
 			generateHtml(movieInfo);
 		}
 	}
@@ -65,23 +47,22 @@ port.onMessage.addListener(function(msg) {
 
 function generateHtml(movieInfo) {
 	if (!settings.meter_shows_whos_score) {
-		settings.meter_shows_whos_score = OPTIONS_METER_AVERAGE; 
+		settings.meter_shows_whos_score = OPTIONS_METER_AVERAGE;
 	}
-	var meter_score = movieInfo.avgScore;
+	let meter_score = movieInfo.avgScore;
 	switch (settings.meter_shows_whos_score) {
 		case OPTIONS_METER_CRITIC:
-			meter_score = movieInfo.critics_score;
+			meter_score = movieInfo.criticsScore;
 			break;
 		case OPTIONS_METER_SHEEPS:
-			meter_score = movieInfo.audience_score;
+			meter_score = movieInfo.audienceScore;
 			break;
 		case OPTIONS_METER_AVERAGE:
 			break;
 	}
-	
 	movieInfo.isRotten = meter_score < 50;
 
-	var addedHtml;
+	let addedHtml;
 	switch (imdbVersion) {
 		case '2012-01-01':
 			addedHtml = '' +
@@ -89,7 +70,7 @@ function generateHtml(movieInfo) {
 				'<div class="info stars">' +
 					'<h5>Rotten Rating:</h5>' +
 					'<div id="rotten_box_outer"><div id="rotten_box" class="' + (movieInfo.isRotten ? 'rotten' : '') + '"><div class="background"><div class="foreground" style="width: ' + meter_score + '%;"></div></div></div></div>' +
-					'<div class="starbar-meta"><b>' + (movieInfo.critics_score >= 0 ? movieInfo.critics_score : 'NA') + '/' + (movieInfo.audience_score >= 0 ? movieInfo.audience_score : 'NA') + '</b>&nbsp;&nbsp;<a href="' + movieInfo.link + '" class="tn15more" target="_blank">To rotten</a>&nbsp;»</div>' +
+					'<div class="starbar-meta"><b>' + (movieInfo.criticsScore >= 0 ? movieInfo.criticsScore : 'NA') + '/' + (movieInfo.audienceScore >= 0 ? movieInfo.audienceScore : 'NA') + '</b>&nbsp;&nbsp;<a href="' + movieInfo.link + '" class="tn15more" target="_blank">To rotten</a>&nbsp;»</div>' +
 				'</div>' +
 			'</div>';
 			jQuery('#tn15rating').append(addedHtml);
@@ -97,71 +78,97 @@ function generateHtml(movieInfo) {
 		case '2012-10-03':
 			addedHtml = '<div class="star-box-rating-widget">' +
 				'<span class="star-box-rating-label">Rotten:</span>' +
-				'<div id="rotten_box_outer_2012-10-03" title="Critics rated this ' + ( movieInfo.critics_score >= 0 ? movieInfo.critics_score : 'NA') + '%, users rated this ' + (movieInfo.audience_score >= 0 ? movieInfo.audience_score : 'NA') + '%">' +
+				'<div id="rotten_box_outer_2012-10-03" title="Critics rated this ' + ( movieInfo.criticsScore >= 0 ? movieInfo.criticsScore : 'NA') + '%, users rated this ' + (movieInfo.audienceScore >= 0 ? movieInfo.audienceScore : 'NA') + '%">' +
 				'<div id="rotten_box_2012-10-03" class="' + (movieInfo.isRotten ? 'rotten' : '') + '"><div class="background"><div class="foreground" style="width: ' + meter_score + '%;"></div></div></div>' +
-				'<span class="rating-rating" style="float: left; width: 85px; margin-left: 5px; text-align: left;"><span class="value">' + ( movieInfo.critics_score >= 0 ? movieInfo.critics_score : 'NA') + '%</span><span class="grey">/</span><span class="grey">' + (movieInfo.audience_score >= 0 ? movieInfo.audience_score : 'NA') + '%</span></span>&nbsp;' +
-				'</div>' + 
+				'<span class="rating-rating" style="float: left; width: 85px; margin-left: 5px; text-align: left;"><span class="value">' + ( movieInfo.criticsScore >= 0 ? movieInfo.criticsScore : 'NA') + '%</span><span class="grey">/</span><span class="grey">' + (movieInfo.audienceScore >= 0 ? movieInfo.audienceScore : 'NA') + '%</span></span>&nbsp;' +
+				'</div>' +
 			'</div>';
 			jQuery('#overview-top').find('DIV.star-box-details').before(addedHtml);
 			break;
+		case '2016-12-30':
+			const $titleBarWrapper = jQuery('#title-overview-widget > div.vital > div.title_block > div.title_bar_wrapper');
+			const $ratingsWrapper = $titleBarWrapper.find('div.ratings_wrapper');
+            $ratingsWrapper.wrap('<div class="rottenScoreWrapper" style="float: right"></div>');
+            $ratingsWrapper.wrap('<div class="rottenScoreWrapperImdbScore"></div>');
+
+            addedHtml = `
+<div class="rottenScoreWrapperRottenScore">
+    <div class="ratings_wrapper">
+        <div class="imdbRating${movieInfo.isRotten ? ' rotten' : ''}" id="rottenScoreRottenScore">
+            <div class="ratingValue">
+                <strong title="Critics rated this ${movieInfo.criticsScore >= 0 ? movieInfo.criticsScore : 'NA'}%, users rated this ${movieInfo.audienceScore >= 0 ? movieInfo.audienceScore : 'NA'}%"><span
+                        itemprop="ratingValue">${movieInfo.criticsScore >= 0 ? movieInfo.criticsScore : 'NA'}</span></strong><span
+                    class="grey">/</span><span class="grey" itemprop="bestRating">${movieInfo.audienceScore >= 0 ? movieInfo.audienceScore : 'NA'}</span></div>
+        </div>
+    </div>
+</div>`;
+            $titleBarWrapper.find('div.rottenScoreWrapperImdbScore').append(addedHtml);
+			break;
 	}
-	
-	
-	
 }
 
 
 
 function detectVersion() {
-	if (jQuery('#title-overview-widget').length) {
-		imdbVersion = "2012-10-03";
+	if (jQuery('div.title_block div.title_bar_wrapper div.ratings_wrapper').length) {
+		imdbVersion = "2016-12-30";
+	} else if (jQuery('#title-overview-widget').length) {
+        imdbVersion = "2012-10-03";
 	}
 }
 
 function parseTitle() {
-	var $header;
+	let $header;
+	let imdbType = 'movie';
 	switch (imdbVersion) {
 		case '2012-01-01':
 			$header = jQuery('#tn15title').find('h1');
 			break;
-		//case '2012-10-03':
+		case '2016-12-30':
+			$header = jQuery('#title-overview-widget > div.vital > div.title_block > div > div.titleBar > div.title_wrapper > h1[itemprop="name"]');
+			break;
 		default:
 			$header = jQuery('h1.header span[itemprop="name"]');
 	}
-	var headerText = $header.clone().children().remove().end().text();
-	var movieName = headerText.replace(/^\s+|\s+$/g, '');
-	var movieYear = null;
+    const headerText = $header.clone().children().remove().end().text();
+    const movieName = headerText.replace(/^\s+|\s+$/g, '');
+    let movieYear;
 	$header.find('span').each(function(index, tagSpan) {
-		var yearString = jQuery(tagSpan).find('a').text();
-		var yearStringCleaned = yearString.replace(/^\s+|\s+$/g, '') ;
-		var yearMatch = yearStringCleaned.match(/((1|2)[0-9]{3})/);
+        const yearString = jQuery(tagSpan).find('a').text();
+        const yearStringCleaned = yearString.replace(/^\s+|\s+$/g, '') ;
+        const yearMatch = yearStringCleaned.match(/((1|2)[0-9]{3})/);
 		if (yearMatch) {
 			movieYear = yearMatch[0];
 		}
 	});
+	if (!movieYear) {
+        const titleText = jQuery('title').text();
+        const yearMatch = titleText.match(/\(TV Series ((1|2)[0-9]{3})–(((1|2)[0-9]{3})|\s)?\) \- IMDb$/);
+        if (yearMatch !== null) {
+            imdbType = 'tv';
+        	movieYear = yearMatch[1];
+		}
+	}
 
-	var fullMovieName = movieName;
+	let parseImdbIdParts = /\/(tt[0-9]{2,10})\//.exec(window.location.pathname);
 
-	if (movieYear) {
-		fullMovieName = fullMovieName + " " + movieYear;
+	let imdbId;
+	if (parseImdbIdParts) {
+        imdbId = parseImdbIdParts[1];
 	}
 	return {
+        imdbType,
+		imdbId: imdbId,
 		name: movieName,
 		year: movieYear,
-		fullName: fullMovieName
 	};
 }
 
 function runExtension() {
 
 	detectVersion();
-	var movie = parseTitle();
-	var queryArgs = {
-			"q": movie.fullName
-	};
-	if (movie.fullName) {
-		port.postMessage({action: 'movies', queryArgs: queryArgs});
-	}
+	const movie = parseTitle();
+    port.postMessage({action: 'getMovieInfo', movie: movie});
 }
 
 port.postMessage({action: 'loadSettings'});

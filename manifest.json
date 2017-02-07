@@ -1,8 +1,9 @@
 {
-  "name": "IMDB rotten scores",
+  "name": "IMDb rottentomatoes scores",
+  "short_name": "Rotten imdb",
   "manifest_version": 2,
-  "version": "0.4.1",
-  "description": "Add rotten tomatoes score to IMDB.com",
+  "version": "2.5.0",
+  "description": "Non-intrusive way to add rotten tomatoes scores to IMDb.com",
   "icons": { "16": "icons/icon16.png",
              "48": "icons/icon48.png",
             "128": "icons/icon128.png" },
@@ -10,17 +11,26 @@
   "default_locale": "en",
   "permissions": [
 	"http://www.imdb.com/*",
-	"https://www.imdb.com/*",
-	"http://api.rottentomatoes.com/*"
+	"https://www.imdb.com/*"
   ],
   "background": {
-  	"scripts": ["lib/jquery.min.js", "src/background.js"]
+  	"scripts": ["lib/jquery-3.1.1.min.js", "src/background.js"],
+    "persistent": false
+  },
+  "browser_action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png"
+    },
+    "default_title": "Rottentomato score",
+    "default_popup": "src/options.html"
   },
   "content_scripts": [
     {
       "matches": ["http://www.imdb.com/*"],
       "css": ["src/contentStyle.css"],
-      "js": [ "lib/jquery.min.js", "src/const.js", "src/contentScript.js" ]
+      "js": [ "lib/jquery-3.1.1.min.js", "src/const.js", "src/contentScript.js" ]
     }
   ],
   "web_accessible_resources": [

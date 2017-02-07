@@ -6,10 +6,10 @@ div#rotten_box_outer { position: absolute; top: -1px; left: 0; height: 20px; wid
 div#rotten_box { height: 20px; width: 200px;}
 div#rotten_box.fresh div { background-position: 0 0 !important; }
 div#rotten_box.rotten div { background-position: 0 -20px !important; }
-div#rotten_box div.background { background: url('chrome-extension://cnjnjblongnnofigldpkgnofieallbdb/icons/rt_lg_gray.png'); background-size: 20px; min-height: 20px; }
-div#rotten_box div.foreground { background: url('chrome-extension://cnjnjblongnnofigldpkgnofieallbdb/icons/rt_lg.png'); background-size: 20px; min-height: 20px; }
+div#rotten_box div.background { background: url('chrome-extension://__MSG_@@extension_id__/icons/rt_lg_gray.png'); background-size: 20px; min-height: 20px; }
+div#rotten_box div.foreground { background: url('chrome-extension://__MSG_@@extension_id__/icons/rt_lg.png'); background-size: 20px; min-height: 20px; }
 
-/* New design */
+/* 2012-10-03 design */
 div#rotten_box_outer_2012-10-03 { height: 14px; display: inline-block !important; width: 240px; margin-left: 6px; }
 div#rotten_box_2012-10-03 { height: 14px; width: 140px; display: inline-block !important;}
 div#rotten_box_2012-10-03.fresh div { background-position: 0 0 !important; }
@@ -18,6 +18,15 @@ div#rotten_box_2012-10-03.certified div { background-position: 0 -28px !importan
 div#rotten_box_2012-10-03.upright div { background-position: 0 -42px !important; }
 div#rotten_box_2012-10-03.upright div { background-position: 0 -56px !important; }
 div#rotten_box_2012-10-03.rotten div { background-position: 0 -70px !important; }
-div#rotten_box_2012-10-03 div.background { background: url('chrome-extension://cnjnjblongnnofigldpkgnofieallbdb/icons/rt_lg_gray.png'); background-size: 14px; min-height: 14px; }
-div#rotten_box_2012-10-03 div.foreground { background: url('chrome-extension://cnjnjblongnnofigldpkgnofieallbdb/icons/rt_lg.png'); background-size: 14px; min-height: 14px; }
+div#rotten_box_2012-10-03 div.background { background: url('chrome-extension://__MSG_@@extension_id__/icons/rt_lg_gray.png'); background-size: 14px; min-height: 14px; }
+div#rotten_box_2012-10-03 div.foreground { background: url('chrome-extension://__MSG_@@extension_id__/icons/rt_lg.png'); background-size: 14px; min-height: 14px; }
+
+/* 2016-12-30 design */
+div#rottenScoreRottenScore.fresh { background-position: 0 0 !important; }
+div#rottenScoreRottenScore.rotten { background-position: 0 -30px !important; }
+div#rottenScoreRottenScore.certified { background-position: 0 -60px !important; }
+div#rottenScoreRottenScore.upright { background-position: 0 -90px !important; }
+div#rottenScoreRottenScore.upright { background-position: 0 -120px !important; }
+div#rottenScoreRottenScore.rotten { background-position: 0 -150px !important; }
+div#rottenScoreRottenScore { background: url('chrome-extension://__MSG_@@extension_id__/icons/rt_lg.png'); background-size: 30px; height: 30px; background-repeat: no-repeat;}
 
